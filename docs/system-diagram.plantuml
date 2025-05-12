@@ -1,0 +1,60 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Человек, использующий мобильное или веб-приложение")
+
+System_Boundary(c1, "Система") {
+  Container(mobile_app, "Мобильное приложение", "Android/IOS", "Взаимодействие с пользователя с системой с помощью телефона")
+  Container(web_app, "Веб-приложение", "React", "Веб-интерфейс взаимодействия пользователя с системой")
+
+  Container(api_gateway, "API Gateway", "", "Промежуточный обработчик запросов с клиентов и обработки (rate-limiting)")
+
+  Container(backend, "Серверная часть", "Go", "Обработка бизнес-логики и интеграция с сервисами") {
+    Component(moderation_system, "Система модерации пользователей", "REST API", "Модерация пользователей и контента")
+    Component(comp_system, "Система конкурсов", "REST API", "Управление конкурсами, уведомление пользователей")
+    Component(recom_system, "Система рекомандаций контента", "REST API", "Рекомендации контента пользователям")
+    Component(search_service, "Поиск", "Elasticsearch", "Полнотекстовый поиск по контенту")
+  }
+
+  ContainerDb(db_moderation, "База данных: Модерация пользователей", "PostgreSQL", "Статусы пользователей, история банов")
+  ContainerDb(db_comp, "База данных: Конкурсы", "PostgreSQL", "Информация о конкурсах и результатах")
+  ContainerDb(db_recom, "База данных: Настройки рекомендаций", "PostgreSQL", "Информация об интересах и рекомендациях пользователя")
+
+  ContainerDb(db_cache, "Кэш", "Redis", "Кэширование запросов и сессий")
+  ContainerQueue(msg_queue, "Очередь сообщений", "RabbitMQ", "Асинхронная обработка задач")
+}
+
+System_Ext(auth, "Сервер аутентификации", "Auth0/Keycloak")
+System_Ext(payment, "Платежная система", "YooMoney")
+System_Ext(storage, "Облачное хранилище", "Azure Blob Storage")
+System_Ext(image_moderation_system, "Система модерации изображений", "Google Cloud Vision")
+System_Ext(ads, "Сервис рекламы", "Google Ads")
+System_Ext(push, "Сервис уведомлений", "Firebase Push")
+System_Ext(analytics, "Сервис аналитики", "Google Analytics")
+
+' Связи пользователя с приложениями
+Rel_D(user, mobile_app, "Использование системы", "HTTPS")
+Rel_D(user, web_app, "", "")
+
+' Связи приложений с серверной частью
+Rel_D(mobile_app, api_gateway, "REST API: Запросы к системе", "HTTPS")
+Rel_D(web_app, api_gateway, "", "")
+Rel_D(api_gateway, backend, "REST API: Запросы к системе от клиента", "HTTPS")
+
+' Внутренние связи серверной части
+Rel_R(api_gateway, auth, "Авторизирует запросы", "HTTPS")
+Rel_D(backend, payment, "Создание и обработка платежей", "JSON/HTTPS")
+Rel_D(backend, storage, "Загружка контента", "Blob")
+Rel_D(backend, image_moderation_system, "Отправка изображений на проверку", "Base64")
+Rel_D(backend, ads, "Обработка платежей", "Stripe API")
+
+Rel_D(backend, db_cache, "", "")
+Rel_D(backend, msg_queue, "", "")
+
+Rel_D(moderation_system, db_moderation, "", "")
+Rel_D(comp_system, db_comp, "", "")
+Rel_D(recom_system, db_recom, "", "")
+
+Rel(backend, push, "Отправка уведомлений клиенту", "JSON/HTTPS")
+Rel(backend, analytics, "Отправка событий аналитики", "JSON/HTTPS")
+@enduml

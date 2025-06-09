@@ -40,6 +40,9 @@
 - добавление водяных знаков при скачивании изображений;
 - модерация изображений и постов;
 
+## Прототип
+https://www.figma.com/proto/q2w8ImUvJqMfGjfx0lFRxE/Untitled?node-id=15-16&t=C4sDb9fOUxQ1ahq2-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=15%3A16
+
 ## Команда _DropDatabase_
 
 - Голубев Даниил 1/233;

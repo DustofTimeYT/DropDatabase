@@ -1,26 +1,26 @@
 @startuml
 actor User
-boundary "AuthUI" as UI
+boundary Client
 control "AuthController" as AC
 control "AuthService" as AS
 control "ProfileService" as PS
 control "TokenValidator" as TV
-entity "AccountRepository" as AR
-entity "ProfileRepository" as PR
+boundary "AccountRepository" as AR
+boundary "ProfileRepository" as PR
 entity "Profile" as P
-boundary "ExternalAuthSystem" as EAS
+actor "ExternalAuthSystem" as EAS
 
-User -> UI: initiateLogin()
-activate UI
+User -> Client: initiateLogin()
+activate Client
 
-UI -> User: showAuthOptions()
+Client -> User: showAuthOptions()
 activate User
 
 alt User selects auth method
-    User -> UI: selectAuthMethod(method)
+    User -> Client: selectAuthMethod(method)
     deactivate User
 
-    UI -> AC: redirectToAuth(method)
+    Client -> AC: redirectToAuth(method)
 
     activate AC
     AC -> User: redirect to external auth
@@ -28,13 +28,11 @@ alt User selects auth method
 
     User -> EAS: authenticate(credentials)
     activate EAS
-    activate User
     EAS -> EAS: processAuth()
-    EAS -> User: redirect with token
-    deactivate User
+    EAS -> Client: redirect with token
     deactivate EAS
 
-    User -> AC: callback(token)
+    Client -> AC: callback(token)
 
     activate AC
 
@@ -61,11 +59,11 @@ alt User selects auth method
             AS --> AC: success(profile)
             deactivate AS
 
-            AC -> UI: showPersonalCabinet(profile)
+            AC -> Client: showPersonalCabinet(profile)
             deactivate AC
 
-            UI -> User: display personal cabinet
-            deactivate UI
+            Client -> User: display personal cabinet
+            deactivate Client
 
         else First time user (no account)
             AS -> PS: createProfile(externalData)
@@ -97,30 +95,30 @@ alt User selects auth method
             AS --> AC: success(profile)
             deactivate AS
 
-            AC -> UI: showWelcomeAndPersonalCabinet(profile)
+            AC -> Client: showWelcomeAndPersonalCabinet(profile)
             deactivate AC
 
-            UI -> User: display welcome message and personal cabinet
-            deactivate UI
+            Client -> User: display welcome message and personal cabinet
+            deactivate Client
         end
 
     else Token is invalid/expired
         AS --> AC: error("Invalid token")
         deactivate AS
 
-        AC -> UI: showAuthError()
+        AC -> Client: showAuthError()
         deactivate AC
 
-        UI -> User: display error and retry prompt
-        deactivate UI
+        Client -> User: display error and retry prompt
+        deactivate Client
     end
 
 else User cancels auth
-    User -> UI: cancelAuth()
+    User -> Client: cancelAuth()
     deactivate User
 
-    UI -> User: showLoginPage()
-    deactivate UI
+    Client -> User: showLoginPage()
+    deactivate Client
 end
 
 @enduml

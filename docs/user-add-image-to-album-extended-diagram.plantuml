@@ -1,13 +1,13 @@
 @startuml
 
-actor Profile
+actor User
 boundary "UI" as UI
 control "AlbumController" as AC
-control "AlbumRepository" as AR
-control "ImageRepository" as IR
+boundary "AlbumRepository" as AR
+boundary "ImageRepository" as IR
 entity "Album" as A
 
-Profile -> UI: click "Add to Album" on image
+User -> UI: click "Add to Album" on image
 activate UI
 
 UI -> AC: getAlbums(profileId)
@@ -19,23 +19,23 @@ deactivate AR
 AC --> UI: albums list
 deactivate AC
 
-UI -> Profile: show album selection dialog
-activate Profile
+UI -> User: show album selection dialog
+activate User
 
 alt Select existing album
-    Profile -> UI: select album(albumId)
-    deactivate Profile
+    User -> UI: select album(albumId)
+    deactivate User
 
     UI -> AC: addImagesToAlbum(albumId, imageId)
 
 else Create new album
-    Profile -> UI: click "Create New Album"
-    deactivate Profile
+    User -> UI: click "Create New Album"
+    deactivate User
 
-    UI -> Profile: prompt for album title
-    activate Profile
-    Profile -> UI: enter title
-    deactivate Profile
+    UI -> User: prompt for album title
+    activate User
+    User -> UI: enter title
+    deactivate User
 
     UI -> AC: createAlbum("Title", profileId)
     activate AC
@@ -94,7 +94,7 @@ deactivate AR
 AC --> UI: success
 deactivate AC
 
-UI -> Profile: show "Image added to album"
+UI -> User: show "Image added to album"
 deactivate UI
 
 @enduml

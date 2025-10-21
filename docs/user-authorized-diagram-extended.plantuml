@@ -1,0 +1,126 @@
+@startuml
+actor User
+boundary "AuthUI" as UI
+control "AuthController" as AC
+control "AuthService" as AS
+control "ProfileService" as PS
+entity "TokenValidator" as TV
+entity "AccountRepository" as AR
+entity "ProfileRepository" as PR
+entity "Profile" as P
+boundary "ExternalAuthSystem" as EAS
+
+User -> UI: initiateLogin()
+activate UI
+
+UI -> User: showAuthOptions()
+activate User
+
+alt User selects auth method
+    User -> UI: selectAuthMethod(method)
+    deactivate User
+
+    UI -> AC: redirectToAuth(method)
+
+    activate AC
+    AC -> User: redirect to external auth
+    deactivate AC
+
+    User -> EAS: authenticate(credentials)
+    activate EAS
+    activate User
+    EAS -> EAS: processAuth()
+    EAS -> User: redirect with token
+    deactivate User
+    deactivate EAS
+
+    User -> AC: callback(token)
+
+    activate AC
+
+    AC -> AS: validateToken(token)
+    activate AS
+
+    AS -> TV: validate(token)
+    activate TV
+    TV --> AS: validationResult
+    deactivate TV
+
+    alt Token is valid
+        AS -> AR: findAccountByExternalId(externalId)
+        activate AR
+        AR --> AS: account
+        deactivate AR
+
+        alt Account exists
+            AS -> AR: getProfileForAccount(account)
+            activate AR
+            AR --> AS: profile
+            deactivate AR
+
+            AS --> AC: success(profile)
+            deactivate AS
+
+            AC -> UI: showPersonalCabinet(profile)
+            deactivate AC
+
+            UI -> User: display personal cabinet
+            deactivate UI
+
+        else First time user (no account)
+            AS -> PS: createProfile(externalData)
+            activate PS
+
+            PS -> PR: createProfile(externalData)
+            activate PR
+            PR -> P: new Profile(externalData)
+            activate P
+            P --> PR: newProfile
+            deactivate P
+            PR --> PS: newProfile
+
+            deactivate PR
+
+            PS -> PR: save(newProfile)
+            activate PR
+            PR --> PS: savedProfile
+            deactivate PR
+
+            PS -> AR: createAccount(externalId, savedProfile)
+            activate AR
+            AR --> PS: newAccount
+            deactivate AR
+
+            PS --> AS: profile
+            deactivate PS
+
+            AS --> AC: success(profile)
+            deactivate AS
+
+            AC -> UI: showWelcomeAndPersonalCabinet(profile)
+            deactivate AC
+
+            UI -> User: display welcome message and personal cabinet
+            deactivate UI
+        end
+
+    else Token is invalid/expired
+        AS --> AC: error("Invalid token")
+        deactivate AS
+
+        AC -> UI: showAuthError()
+        deactivate AC
+
+        UI -> User: display error and retry prompt
+        deactivate UI
+    end
+
+else User cancels auth
+    User -> UI: cancelAuth()
+    deactivate User
+
+    UI -> User: showLoginPage()
+    deactivate UI
+end
+
+@enduml

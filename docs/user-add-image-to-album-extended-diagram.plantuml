@@ -1,0 +1,100 @@
+@startuml
+
+actor Profile
+boundary "UI" as UI
+control "AlbumController" as AC
+control "AlbumRepository" as AR
+control "ImageRepository" as IR
+entity "Album" as A
+
+Profile -> UI: click "Add to Album" on image
+activate UI
+
+UI -> AC: getAlbums(profileId)
+activate AC
+AC -> AR: findByUser(profileId)
+activate AR
+AR --> AC: albums list
+deactivate AR
+AC --> UI: albums list
+deactivate AC
+
+UI -> Profile: show album selection dialog
+activate Profile
+
+alt Select existing album
+    Profile -> UI: select album(albumId)
+    deactivate Profile
+
+    UI -> AC: addImagesToAlbum(albumId, imageId)
+
+else Create new album
+    Profile -> UI: click "Create New Album"
+    deactivate Profile
+
+    UI -> Profile: prompt for album title
+    activate Profile
+    Profile -> UI: enter title
+    deactivate Profile
+
+    UI -> AC: createAlbum("Title", profileId)
+    activate AC
+
+    AC -> A: new Album("Title", profileId)
+    activate A
+    A --> AC: newAlbum
+    deactivate A
+
+    AC -> AR: save(newAlbum)
+    activate AR
+    AR --> AC: savedAlbum
+    deactivate AR
+
+    AC -> IR: findById(imageId)
+    activate IR
+    IR --> AC: image
+    deactivate IR
+
+    AC -> A: addImages(image)
+    activate A
+    A --> AC: success
+    deactivate A
+
+    AC -> AR: save(album)
+    activate AR
+    AR --> AC: success
+    deactivate AR
+
+    AC --> UI: success
+    deactivate AC
+end
+
+AC -> AC: addImageToAlbum(albumId, imageId)
+activate AC
+AC -> AR: findById(albumId)
+activate AR
+AR --> AC: album
+deactivate AR
+
+AC -> IR: findById(imageId)
+activate IR
+IR --> AC: image
+deactivate IR
+
+AC -> A: addImages(image)
+activate A
+A --> AC: success
+deactivate A
+
+AC -> AR: save(album)
+activate AR
+AR --> AC: success
+deactivate AR
+
+AC --> UI: success
+deactivate AC
+
+UI -> Profile: show "Image added to album"
+deactivate UI
+
+@enduml

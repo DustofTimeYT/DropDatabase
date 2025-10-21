@@ -4,7 +4,7 @@ boundary "AuthUI" as UI
 control "AuthController" as AC
 control "AuthService" as AS
 control "ProfileService" as PS
-entity "TokenValidator" as TV
+control "TokenValidator" as TV
 entity "AccountRepository" as AR
 entity "ProfileRepository" as PR
 entity "Profile" as P

@@ -4,24 +4,24 @@ actor "User" as u
 boundary ": GUI" as page
 control ": AlbumService" as albumService
 
-u -> page : SaveToAlbum()
-page -> albumService : GetUserAlbums(): Album[]
+u -> page : saveToAlbum()
+page -> albumService : getUserAlbums(): Album[]
 create entity "albums : Album[]" as albums
 albumService -> albums : <<create>>
 albums --> albumService : albums
 albumService --> page : albums
 
 alt User selects existing album
-    u -> page : SelectAlbum(albumId: Integer)
-    page -> albumService : SaveToAlbum(albumId: Integer, imageId: Integer)
+    u -> page : selectAlbum(albumId: Integer)
+    page -> albumService : saveToAlbum(albumId: Integer, imageId: Integer)
 else User wants save to new album
-    u -> page : CreateAlbum(title: String): Album
-    page -> albumService : CreateAlbum(title: String): Album
+    u -> page : createAlbum(title: String): Album
+    page -> albumService : createAlbum(title: String): Album
     create entity "newAlbum : Album" as newAlbum
     albumService -> newAlbum : <<create>>
     newAlbum --> albumService : newAlbum
     albumService --> page : newAlbum
-    page -> albumService : SaveToAlbum(albumId: Integer, imageId: Integer)
+    page -> albumService : saveToAlbum(albumId: Integer, imageId: Integer)
 end
 
 albumService --> page : success

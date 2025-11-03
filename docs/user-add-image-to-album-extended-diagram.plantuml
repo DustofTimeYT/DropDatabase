@@ -1,100 +1,30 @@
 @startuml
 
-actor User
-boundary "UI" as UI
-control "AlbumController" as AC
-boundary "AlbumRepository" as AR
-boundary "ImageRepository" as IR
-entity "Album" as A
+actor "User" as u
+boundary ": GUI" as page
+control ": AlbumService" as albumService
 
-User -> UI: click "Add to Album" on image
-activate UI
+u -> page : SaveToAlbum()
+page -> albumService : GetUserAlbums(): Album[]
+create entity "albums : Album[]" as albums
+albumService -> albums : <<create>>
+albums --> albumService : albums
+albumService --> page : albums
 
-UI -> AC: getAlbums(profileId)
-activate AC
-AC -> AR: findByUser(profileId)
-activate AR
-AR --> AC: albums list
-deactivate AR
-AC --> UI: albums list
-deactivate AC
-
-UI -> User: show album selection dialog
-activate User
-
-alt Select existing album
-    User -> UI: select album(albumId)
-    deactivate User
-
-    UI -> AC: addImagesToAlbum(albumId, imageId)
-
-else Create new album
-    User -> UI: click "Create New Album"
-    deactivate User
-
-    UI -> User: prompt for album title
-    activate User
-    User -> UI: enter title
-    deactivate User
-
-    UI -> AC: createAlbum("Title", profileId)
-    activate AC
-
-    AC -> A: new Album("Title", profileId)
-    activate A
-    A --> AC: newAlbum
-    deactivate A
-
-    AC -> AR: save(newAlbum)
-    activate AR
-    AR --> AC: savedAlbum
-    deactivate AR
-
-    AC -> IR: findById(imageId)
-    activate IR
-    IR --> AC: image
-    deactivate IR
-
-    AC -> A: addImages(image)
-    activate A
-    A --> AC: success
-    deactivate A
-
-    AC -> AR: save(album)
-    activate AR
-    AR --> AC: success
-    deactivate AR
-
-    AC --> UI: success
-    deactivate AC
+alt User selects existing album
+    u -> page : SelectAlbum(albumId: Integer)
+    page -> albumService : SaveToAlbum(albumId: Integer, imageId: Integer)
+else User wants save to new album
+    u -> page : CreateAlbum(title: String): Album
+    page -> albumService : CreateAlbum(title: String): Album
+    create entity "newAlbum : Album" as newAlbum
+    albumService -> newAlbum : <<create>>
+    newAlbum --> albumService : newAlbum
+    albumService --> page : newAlbum
+    page -> albumService : SaveToAlbum(albumId: Integer, imageId: Integer)
 end
 
-AC -> AC: addImageToAlbum(albumId, imageId)
-activate AC
-AC -> AR: findById(albumId)
-activate AR
-AR --> AC: album
-deactivate AR
-
-AC -> IR: findById(imageId)
-activate IR
-IR --> AC: image
-deactivate IR
-
-AC -> A: addImages(image)
-activate A
-A --> AC: success
-deactivate A
-
-AC -> AR: save(album)
-activate AR
-AR --> AC: success
-deactivate AR
-
-AC --> UI: success
-deactivate AC
-
-UI -> User: show "Image added to album"
-deactivate UI
+albumService --> page : success
+page -> u : Show success message
 
 @enduml

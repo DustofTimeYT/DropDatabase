@@ -1,0 +1,61 @@
+@startuml
+
+actor "User" as u
+boundary ": GUI" as page
+control " : AuthService" as authService
+control " : TokenValidator" as tokenValidator
+control " : AccountManager" as accountManager
+control " : ProfileManager" as profileManager
+actor "External Auth System" as eas
+
+u -> page : Authorize()
+page -> authService : GetAvailableAuthOptions(): AuthOption[]
+authService --> page : availableAuthOptions
+page -> u : ShowAvailableAuthOptions()
+
+alt User cancels auth
+    u -> page : CancelAuth()
+    page -> u : Redirect to home page
+else User continue auth
+    u -> page : SelectAuthOption(option)
+    page -> authService : AuthorizeWithOption(option: AuthOption)
+
+    authService -> eas : Authorize user
+    eas --> authService : idToken
+
+    authService -> tokenValidator : validateToken(idToken: IdToken)
+    tokenValidator --> authService : validationResult
+
+    alt Token is invalid
+        authService --> page : error("invalid token")
+        page -> u : Show retry auth dialog
+    else Token is valid
+        authService -> accountManager : FindAccount(idToken: IdToken): Account
+        accountManager --> authService : findResponse
+
+        alt Account exists
+            authService -> profileManager : GetProfileByAccountId(accountId: Integer): Profile
+            create entity "profile : Profile" as profile
+            profileManager -> profile : <<create>>
+            profile --> profileManager : profile
+            profileManager --> authService : profile
+        else Account not exists (first time user)
+            authService -> accountManager : CreateAccount(idToken: IdToken): Account
+            create entity "newAccount : Account" as newAccount
+            accountManager -> newAccount : <<create>>
+            newAccount --> accountManager : newAccount
+            accountManager --> authService : newAccount
+
+            authService -> profileManager : CreateProfile(account: Account): Profile
+            create entity "newProfile : Profile" as newProfile
+            profileManager -> newProfile : <<create>>
+            newProfile --> profileManager : newProfile
+            profileManager --> authService : newProfile
+        end
+
+        authService --> page : profile
+        page -> u : Redirect to home page
+    end
+end
+
+@enduml

@@ -10,6 +10,7 @@
 - [Матрица требований](./docs/05-requirements-matrix.md)
 - [Трассировка требований](./docs/06-requirements-tracing.md)
 - [Сценарии использования](./docs/07-use-scenarios.md)
+- [Архитектурные решения](./docs/08-architecture-decision-records.md)
 
 ## Прототип
 https://www.figma.com/proto/q2w8ImUvJqMfGjfx0lFRxE/Untitled?node-id=15-16&t=C4sDb9fOUxQ1ahq2-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=15%3A16

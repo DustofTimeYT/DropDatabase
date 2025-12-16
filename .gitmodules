@@ -1,0 +1,9 @@
+[submodule "images"]
+	path = images
+	url = https://github.com/urashima88/images
+[submodule "tags"]
+	path = tags
+	url = https://github.com/urashima88/tags
+[submodule "feed"]
+	path = feed
+	url = https://github.com/urashima88/feed
